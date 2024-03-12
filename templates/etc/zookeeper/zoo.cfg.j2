@@ -1,0 +1,14 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+{% import "zookeeper-macros.j2" as macros without context %}
+
+{% for option, value in (_zookeeper_configuration | dictsort) %}
+{{ macros.zookeeper_format_option(option, value) -}}
+{% endfor %}
+{% if (zookeeper_server_inventory_hosts | d([])) | length > 1 %}
+
+{%   for host in zookeeper_server_inventory_hosts %}
+{%     set _server = hostvars[host][zookeeper_server_host_fact] %}
+server.{{ _server.id | mandatory }}={{ _server.hostname | mandatory }}:{{ _server.ports | d(zookeeper_server_default_ports) }}
+{%   endfor %}
+{% endif %}

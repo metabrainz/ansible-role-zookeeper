@@ -1,0 +1,13 @@
+---
+- name: Reload SystemD
+  listen: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart ZooKeeper
+  listen: restart zookeeper
+  ansible.builtin.service:
+    name: zookeeper
+    state: "{{ zookeeper_restart_handler_state }}"
+  when: zookeeper_service_enabled
+  ignore_errors: "{{ ansible_check_mode }}"

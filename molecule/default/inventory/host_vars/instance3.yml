@@ -1,0 +1,4 @@
+zookeeper_host_configuration:
+  metricsProvider:
+    className: org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+    httpHost: 127.0.0.1

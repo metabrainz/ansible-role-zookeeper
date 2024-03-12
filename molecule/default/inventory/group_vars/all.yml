@@ -1,0 +1,1 @@
+zookeeper_server_inventory_hosts: "{{ groups['zookeeper_servers'] }}"

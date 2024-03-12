@@ -1,0 +1,181 @@
+---
+- name: Install ZooKeeper dependencies
+  ansible.builtin.apt:
+    name: "{{ zookeeper_package_dependencies }}"
+    state: "{{ zookeeper_package_state }}"
+    cache_valid_time: "{{ zookeeper_package_cache_valid_time | d(omit) }}"
+
+- name: Create ZooKeeper group
+  ansible.builtin.group:
+    name: "{{ zookeeper_user_group }}"
+    gid: "{{ zookeeper_user_group_gid | d(omit) }}"
+    state: present
+    system: true
+
+- name: Create ZooKeeper user
+  ansible.builtin.user:
+    name: "{{ zookeeper_user }}"
+    uid: "{{ zookeeper_user_uid | d(omit) }}"
+    group: "{{ zookeeper_user_group }}"
+    shell: "{{ zookeeper_user_shell }}"
+    system: true
+    create_home: true
+    home: "{{ zookeeper_user_home }}"
+
+- name: Create ZooKeeper directories
+  ansible.builtin.file:
+    path: "{{ item.path | d(item) }}"
+    owner: "{{ item.owner | d('root') }}"
+    group: "{{ item.group | d('root') }}"
+    mode: "{{ item.mode | d('0755') }}"
+    state: directory
+  loop:
+    - path: "{{ zookeeper_configuration_directory }}"
+      group: "{{ zookeeper_user_group }}"
+      mode: "0750"
+    - path: "{{ zookeeper_data_directory }}"
+      owner: "{{ zookeeper_user }}"
+      group: "{{ zookeeper_user_group }}"
+      mode: "0750"
+    - path: "{{ zookeeper_data_log_directory }}"
+      owner: "{{ zookeeper_user }}"
+      group: "{{ zookeeper_user_group }}"
+      mode: "0755"
+    - "{{ zookeeper_download_directory }}"
+    - path: "{{ zookeeper_log_directory }}"
+      owner: "{{ zookeeper_user }}"
+      group: "{{ zookeeper_user_group }}"
+    - "{{ zookeeper_release_path }}"
+
+- name: Stat ZooKeeper current release path
+  ansible.builtin.stat:
+    path: "{{ zookeeper_current_release_path }}"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: _zookeeper_current_release_path
+
+- name: Fail if ZooKeeper current release path exists and is not a symlink
+  ansible.builtin.fail:
+    msg: "{{ zookeeper_current_release_path }} exists and is not a symlink, aborting..."
+  when:
+    - _zookeeper_current_release_path.stat.islnk is defined
+    - not _zookeeper_current_release_path.stat.islnk
+
+- name: Download ZooKeeper
+  ansible.builtin.get_url:
+    url: "{{ zookeeper_download_url }}"
+    dest: "{{ zookeeper_download_directory }}/{{ zookeeper_download_url | basename }}"
+    checksum: "{{ zookeeper_download_checksum | d(omit) }}"
+    mode: "0644"
+  register: _zookeeper_download
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Unarchive ZooKeeper
+  ansible.builtin.unarchive:
+    src: "{{ zookeeper_download_directory }}/{{ zookeeper_download_url | basename }}"
+    dest: "{{ zookeeper_release_path }}"
+    mode: "0755"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+  when: _zookeeper_download is changed # noqa no-handler
+
+- name: Install ZooKeeper symlink
+  ansible.builtin.file:
+    src: "{{ zookeeper_release_path }}"
+    dest: "{{ zookeeper_current_release_path }}"
+    state: link
+  notify: restart zookeeper
+
+- name: Install ZooKeeper server SystemD service
+  ansible.builtin.template:
+    src: etc/systemd/system/zookeeper.service.j2
+    dest: /etc/systemd/system/zookeeper.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart zookeeper
+  vars:
+    _service_config: >-
+      {{
+        zookeeper_service_configuration | combine(
+          zookeeper_group_service_configuration,
+          zookeeper_host_service_configuration,
+          list_merge=zookeeper_service_configuration_list_merge,
+          recursive=zookeeper_service_configuration_recursive_merge
+        )
+      }}
+
+- name: Install ZooKeeper environment file
+  ansible.builtin.template:
+    src: etc/zookeeper/java.env.j2
+    dest: "{{ zookeeper_environment_file }}"
+    owner: "{{ zookeeper_environment_file_owner | d(omit) }}"
+    group: "{{ zookeeper_environment_file_group | d(omit) }}"
+    mode: "{{ zookeeper_environment_file_mode | d('0644') }}"
+  notify: restart zookeeper
+  vars:
+    _zookeeper_environment: >-
+      {{
+        zookeeper_environment | combine(
+          zookeeper_group_environment,
+          zookeeper_host_environment
+        )
+      }}
+
+- name: Install ZooKeeper configuration file
+  ansible.builtin.template:
+    src: etc/zookeeper/zoo.cfg.j2
+    dest: "{{ zookeeper_configuration_file }}"
+    owner: "{{ zookeeper_configuration_file_owner | d(omit) }}"
+    group: "{{ zookeeper_configuration_file_group | d(omit) }}"
+    mode: "{{ zookeeper_configuration_file_mode | d('0644') }}"
+  notify: restart zookeeper
+  vars:
+    _zookeeper_configuration: >-
+      {{
+        zookeeper_configuration | combine(
+          zookeeper_group_configuration,
+          zookeeper_host_configuration,
+          list_merge=zookeeper_configuration_list_merge,
+          recursive=zookeeper_configuration_recursive_merge
+        )
+      }}
+
+- name: Install additional ZooKeeper configuration files
+  ansible.builtin.template:
+    src: "etc/zookeeper/file.j2"
+    dest: "{{ zookeeper_configuration_directory }}/{{ item.key }}"
+    owner: "{{ item.value.owner | d(omit) }}"
+    group: "{{ item.value.group | d(omit) }}"
+    mode: "{{ item.value.mode | d('0644') }}"
+    backup: "{{ item.value.backup | d(omit) }}"
+  loop: "{{ _zookeeper_configuration_files | dict2items }}"
+  notify: restart zookeeper
+  vars:
+    _zookeeper_configuration_files: >-
+      {{
+        zookeeper_configuration_files | combine(
+          zookeeper_group_configuration_files,
+          zookeeper_host_configuration_files,
+          recursive=zookeeper_configuration_recursive_merge
+        )
+      }}
+
+- name: Install ZooKeeper cluster ID file
+  ansible.builtin.copy:
+    dest: "{{ zookeeper_data_directory }}/myid"
+    content: "{{ zookeeper_server_configuration.id }}"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_user_group }}"
+    mode: "0644"
+  notify: restart zookeeper
+  when: zookeeper_server_inventory_hosts | d([]) | length > 0
+
+- name: Enable ZooKeeper service
+  ansible.builtin.service:
+    name: zookeeper
+    enabled: "{{ zookeeper_service_enabled }}"
+    state: "{{ zookeeper_service_state | d(omit) }}"
+  ignore_errors: "{{ ansible_check_mode }}"

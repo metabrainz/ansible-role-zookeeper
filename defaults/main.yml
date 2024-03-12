@@ -1,0 +1,116 @@
+---
+zookeeper_version: 3.9.1
+zookeeper_download_url: >-
+  https://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz
+zookeeper_download_checksum: >-
+  sha512:6a1c56557ee8de63dc0730de6c55640afa8ae9043e57539fed393120fe3adfb7f30a6ac13af0a6331ff34ba9c6f2b31e41e40c5446e669651522fffb9ce64e48
+
+zookeeper_package_dependencies:
+  - gzip
+  - tar
+  - openjdk-17-jre-headless
+zookeeper_package_state: present
+# zookeeper_package_cache_valid_time: 600
+
+zookeeper_base_directory: /opt/zookeeper
+zookeeper_download_directory: "{{ zookeeper_base_directory }}/archives"
+zookeeper_release_directory: "{{ zookeeper_base_directory }}/releases"
+zookeeper_release_path: "{{ zookeeper_release_directory }}/zookeeper-{{ zookeeper_version }}"
+zookeeper_current_release_path: "{{ zookeeper_release_directory }}/current"
+
+zookeeper_service_enabled: true
+# zookeeper_service_state: started
+zookeeper_restart_handler_state: restarted
+
+zookeeper_user: zookeeper
+# zookeeper_user_uid:
+zookeeper_user_group: zookeeper
+# zookeeper_user_group_gid:
+zookeeper_user_shell: /usr/sbin/nologin
+zookeeper_user_home: /var/lib/zookeeper
+
+zookeeper_configuration_directory: "/etc/zookeeper"
+zookeeper_data_directory: "{{ zookeeper_user_home }}"
+zookeeper_data_log_directory: "{{ zookeeper_data_directory }}/log"
+zookeeper_log_directory: "/var/log/zookeeper"
+
+zookeeper_configuration_file: "{{ zookeeper_configuration_directory }}/zoo.cfg"
+# zookeeper_configuration_file_owner:
+# zookeeper_configuration_file_group:
+# zookeeper_configuration_file_mode:
+
+zookeeper_configuration_files:
+  configuration.xsl:
+    file: configuration.xsl
+  logback.xml:
+    file: logback.xml
+zookeeper_group_configuration_files: {}
+zookeeper_host_configuration_files: {}
+
+zookeeper_environment_file: "{{ zookeeper_configuration_directory }}/java.env"
+# zookeeper_environment_file_owner:
+# zookeeper_environment_file_group:
+# zookeeper_environment_file_mode:
+
+zookeeper_environment:
+  ZOO_LOG_DIR: "{{ zookeeper_log_directory }}"
+zookeeper_group_environment: {}
+zookeeper_host_environment: {}
+
+zookeeper_configuration:
+  tickTime: 2000
+  initLimit: 10
+  syncLimit: 5
+  dataDir: "{{ zookeeper_data_directory }}"
+  dataLogDir: "{{ zookeeper_data_log_directory }}"
+  clientPort: 2181
+  # maxClientCnxns: 60
+  autopurge:
+    snapRetainCount: 3
+    purgeInterval: 1
+  # metricsProvider:
+  #   className: org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+  #   httpHost: 0.0.0.0
+  #   httpPort: 7000
+  #   exportJvmInfo: true
+zookeeper_group_configuration: {}
+zookeeper_host_configuration: {}
+
+zookeeper_server_inventory_hosts: []
+zookeeper_server_host_fact: "zookeeper_server_configuration"
+zookeeper_server_default_ports: "2888:3888"
+
+zookeeper_service_configuration:
+  Unit:
+    Description: Apache ZooKeeper server
+    Requires: network-online.target
+    After: network-online.target
+  Service:
+    User: "{{ zookeeper_user }}"
+    Group: "{{ zookeeper_user_group }}"
+    ExecStart: >-
+      {{ zookeeper_current_release_path }}/bin/zkServer.sh
+      --config {{ zookeeper_configuration_directory }}
+      start-foreground
+    ExecStop: >-
+      {{ zookeeper_current_release_path }}/bin/zkServer.sh
+      --config {{ zookeeper_configuration_directory }}
+      stop
+    PrivateDevices: true
+    PrivateTmp: true
+    ProtectControlGroups: true
+    ProtectKernelTunables: true
+    ProtectSystem: strict
+    ReadWritePaths: >-
+     {{ zookeeper_data_directory }}
+     {{ zookeeper_data_log_directory }}
+     {{ zookeeper_log_directory }}
+  Install:
+    WantedBy: multi-user.target
+zookeeper_group_service_configuration: {}
+zookeeper_host_service_configuration: {}
+
+zookeeper_configuration_list_merge: replace
+zookeeper_configuration_recursive_merge: true
+zookeeper_service_configuration_list_merge: replace
+zookeeper_service_configuration_recursive_merge: true
