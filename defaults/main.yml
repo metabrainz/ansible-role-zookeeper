@@ -4,6 +4,8 @@ zookeeper_download_url: >-
   https://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz
 zookeeper_download_checksum: >-
   sha512:2b5ae02d618a27ca8cd54924855d5344263b7d9dee760181f9d66bafa9230324d2ad31786895f0654c969dc38d4a3d0077f74cc376b58b5fa2fb94beb1ab445f
+# zookeeper_local_download_directory: ~/.cache/ansible/zookeeper
+# zookeeper_local_download_directory_mode: "0750"
 
 zookeeper_package_dependencies:
   - gzip

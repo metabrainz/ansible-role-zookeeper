@@ -62,7 +62,33 @@
     - _zookeeper_current_release_path.stat.islnk is defined
     - not _zookeeper_current_release_path.stat.islnk
 
-- name: Download ZooKeeper
+- name: Download ZooKeeper archive locally and copy to hosts
+  when: zookeeper_local_download_directory | d()
+  block:
+    - name: Create local download directory
+      ansible.builtin.file:
+        path: "{{ zookeeper_local_download_directory }}"
+        mode: " {{ zookeeper_local_download_directory_mode | d('0755') }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: Download ZooKeeper archive
+      ansible.builtin.get_url:
+        url: "{{ zookeeper_download_url }}"
+        dest: "{{ zookeeper_local_download_directory }}/{{ zookeeper_download_url | basename }}"
+        checksum: "{{ zookeeper_download_checksum | d(omit) }}"
+        mode: "0644"
+      delegate_to: localhost
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Copy ZooKeeper archive to hosts
+      ansible.builtin.copy:
+        src: "{{ zookeeper_local_download_directory }}/{{ zookeeper_download_url | basename }}"
+        dest: "{{ zookeeper_download_directory }}"
+        mode: "0644"
+      register: _zookeeper_copy
+
+- name: Download ZooKeeper archive on hosts
   ansible.builtin.get_url:
     url: "{{ zookeeper_download_url }}"
     dest: "{{ zookeeper_download_directory }}/{{ zookeeper_download_url | basename }}"
@@ -70,6 +96,7 @@
     mode: "0644"
   register: _zookeeper_download
   ignore_errors: "{{ ansible_check_mode }}"
+  when: not zookeeper_local_download_directory | d()
 
 - name: Unarchive ZooKeeper
   ansible.builtin.unarchive:
@@ -79,7 +106,10 @@
     remote_src: true
     extra_opts:
       - --strip-components=1
-  when: _zookeeper_download is changed or (zookeeper_force_unarchive | d()) # noqa no-handler
+  when: >-
+    (_zookeeper_copy | d()) is changed or
+    (_zookeeper_download | d()) is changed or
+    (zookeeper_force_unarchive | d())
 
 - name: Install ZooKeeper symlink
   ansible.builtin.file:

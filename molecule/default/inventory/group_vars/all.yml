@@ -1,1 +1,4 @@
 zookeeper_server_inventory_hosts: "{{ groups['zookeeper_servers'] }}"
+
+# for caching of zookeeper archives
+zookeeper_local_download_directory: ~/.cache/ansible/zookeeper

@@ -80,6 +80,12 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py${{ matrix.python }}-ansible${{ matrix.ansible }}-${{ env.REQS_HASH }}
 
+      - name: Cache ZooKeeper archive directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ansible/zookeeper
+          key: zookeeper
+
       - name: Install test dependencies
         run: pip3 install -r test-requirements.txt
 
