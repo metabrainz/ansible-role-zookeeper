@@ -18,6 +18,8 @@ zookeeper_release_directory: "{{ zookeeper_base_directory }}/releases"
 zookeeper_release_path: "{{ zookeeper_release_directory }}/zookeeper-{{ zookeeper_version }}"
 zookeeper_current_release_path: "{{ zookeeper_release_directory }}/current"
 
+# zookeeper_force_unarchive: false
+
 zookeeper_service_enabled: true
 # zookeeper_service_state: started
 zookeeper_restart_handler_state: restarted

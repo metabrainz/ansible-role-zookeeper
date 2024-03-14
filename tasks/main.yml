@@ -79,7 +79,7 @@
     remote_src: true
     extra_opts:
       - --strip-components=1
-  when: _zookeeper_download is changed # noqa no-handler
+  when: _zookeeper_download is changed or (zookeeper_force_unarchive | d()) # noqa no-handler
 
 - name: Install ZooKeeper symlink
   ansible.builtin.file:
