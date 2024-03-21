@@ -71,6 +71,7 @@
         mode: " {{ zookeeper_local_download_directory_mode | d('0755') }}"
         state: directory
       delegate_to: localhost
+      run_once: true
 
     - name: Download ZooKeeper archive
       ansible.builtin.get_url:
@@ -80,6 +81,7 @@
         mode: "0644"
       delegate_to: localhost
       ignore_errors: "{{ ansible_check_mode }}"
+      run_once: true
 
     - name: Copy ZooKeeper archive to hosts
       ansible.builtin.copy:
