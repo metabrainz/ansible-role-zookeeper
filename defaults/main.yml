@@ -7,10 +7,11 @@ zookeeper_download_checksum: >-
 # zookeeper_local_download_directory: ~/.cache/ansible/zookeeper
 # zookeeper_local_download_directory_mode: "0750"
 
+zookeeper_java_package: openjdk-17-jre-headless
 zookeeper_package_dependencies:
   - gzip
   - tar
-  - openjdk-17-jre-headless
+  - "{{ zookeeper_java_package }}"
 zookeeper_package_state: present
 # zookeeper_package_cache_valid_time: 600
 
