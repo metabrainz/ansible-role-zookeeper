@@ -4,6 +4,7 @@
     name: "{{ zookeeper_package_dependencies }}"
     state: "{{ zookeeper_package_state }}"
     cache_valid_time: "{{ zookeeper_package_cache_valid_time | d(omit) }}"
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Create ZooKeeper group
   ansible.builtin.group:
@@ -89,6 +90,7 @@
         dest: "{{ zookeeper_download_directory }}"
         mode: "0644"
       register: _zookeeper_copy
+      ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Download ZooKeeper archive on hosts
   ansible.builtin.get_url:
@@ -119,6 +121,7 @@
     dest: "{{ zookeeper_current_release_path }}"
     state: link
   notify: restart zookeeper
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Install ZooKeeper server SystemD service
   ansible.builtin.template:
