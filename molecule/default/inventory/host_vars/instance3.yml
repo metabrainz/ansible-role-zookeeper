@@ -1,4 +1,5 @@
 zookeeper_host_configuration:
+  quorumListenOnAllIPs: false
   metricsProvider:
     className: org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
     httpHost: 127.0.0.1

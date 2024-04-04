@@ -1,7 +1,7 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 
 {% macro zookeeper_format_option(option, value) -%}
-{% if value is bool %}
+{% if value is boolean %}
 {{ option }}={{ value | string | lower }}
 {% elif value is list %}
 {{ option }}={{ value | join(',') }}

@@ -8,11 +8,11 @@
 {% endmacro -%}
 
 {% macro systemd_format_option(option, value) -%}
-{% if value is bool %}
+{% if value is boolean %}
 {{ option }}={{ value | string | lower }}
 {% elif value is list and value %}
 {%   for v in value %}
-{{ option }}={{ (v | string | lower) if v is bool else (v | string) }}
+{{ option }}={{ (v | string | lower) if v is boolean else (v | string) }}
 {%   endfor %}
 {% else %}
 {{ option }}={{ value | string }}
