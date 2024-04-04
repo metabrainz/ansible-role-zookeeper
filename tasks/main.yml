@@ -73,6 +73,8 @@
         state: directory
       delegate_to: localhost
       run_once: true
+      vars:
+        ansible_become: false
 
     - name: Download ZooKeeper archive
       ansible.builtin.get_url:
@@ -81,8 +83,10 @@
         checksum: "{{ zookeeper_download_checksum | d(omit) }}"
         mode: "0644"
       delegate_to: localhost
-      ignore_errors: "{{ ansible_check_mode }}"
       run_once: true
+      ignore_errors: "{{ ansible_check_mode }}"
+      vars:
+        ansible_become: false
 
     - name: Copy ZooKeeper archive to hosts
       ansible.builtin.copy:
