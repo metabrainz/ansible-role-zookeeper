@@ -1,3 +1,11 @@
 zookeeper_server_configuration:
   hostname: "{{ inventory_hostname }}"
   id: "42"
+
+zookeeper_host_configuration:
+  4lw:
+    commands:
+      whitelist:
+        - conf
+        - mntr
+        - ruok

@@ -4,7 +4,7 @@
 {% if value is bool %}
 {{ option }}={{ value | string | lower }}
 {% elif value is list %}
-{{ option }}={{ v | join(',') }}
+{{ option }}={{ value | join(',') }}
 {% elif value is mapping %}
 {%   for o, v in (value | dictsort) %}
 {{ option }}.{{ zookeeper_format_option(o, v) -}}
