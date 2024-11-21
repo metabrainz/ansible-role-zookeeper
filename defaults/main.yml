@@ -73,11 +73,11 @@ zookeeper_configuration:
   autopurge:
     snapRetainCount: 3
     purgeInterval: 1
-  # metricsProvider:
-  #   className: org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
-  #   httpHost: 0.0.0.0
-  #   httpPort: 7000
-  #   exportJvmInfo: true
+# metricsProvider:
+#   className: org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+#   httpHost: 0.0.0.0
+#   httpPort: 7000
+#   exportJvmInfo: true
 zookeeper_group_configuration: {}
 zookeeper_host_configuration: {}
 
@@ -107,9 +107,9 @@ zookeeper_service_configuration:
     ProtectKernelTunables: true
     ProtectSystem: strict
     ReadWritePaths: >-
-     {{ zookeeper_data_directory }}
-     {{ zookeeper_data_log_directory }}
-     {{ zookeeper_log_directory }}
+      {{ zookeeper_data_directory }}
+      {{ zookeeper_data_log_directory }}
+      {{ zookeeper_log_directory }}
   Install:
     WantedBy: multi-user.target
 zookeeper_group_service_configuration: {}
