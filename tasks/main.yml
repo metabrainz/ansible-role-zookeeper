@@ -63,13 +63,23 @@
     - _zookeeper_current_release_path.stat.islnk is defined
     - not _zookeeper_current_release_path.stat.islnk
 
+- name: Check if ZooKeeper archive exists on hosts
+  ansible.builtin.stat:
+    path: "{{ zookeeper_download_directory }}/{{ zookeeper_download_url | basename }}"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: _zookeeper_archive
+
 - name: Download ZooKeeper archive locally and copy to hosts
-  when: zookeeper_local_download_directory | d()
+  when:
+    - zookeeper_local_download_directory | d()
+    - not _zookeeper_archive.stat.isreg | d()
   block:
     - name: Create local download directory
       ansible.builtin.file:
         path: "{{ zookeeper_local_download_directory }}"
-        mode: " {{ zookeeper_local_download_directory_mode | d('0755') }}"
+        mode: "{{ zookeeper_local_download_directory_mode | d('0755') }}"
         state: directory
       delegate_to: localhost
       run_once: true
