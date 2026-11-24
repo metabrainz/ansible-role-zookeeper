@@ -73,8 +73,6 @@ jobs:
           ansible==${{ matrix.ansible }}.*
           docker
           molecule-plugins[docker]
-          # https://github.com/docker/docker-py/issues/3256
-          requests==2.31.0
           EOF
           echo "REQS_HASH=$(sha256sum test-requirements.txt | awk '{ print $1 }')" >> "$GITHUB_ENV"
 
