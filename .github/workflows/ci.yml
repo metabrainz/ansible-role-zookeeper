@@ -44,17 +44,18 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - "3.10"
-          - "3.11"
           - "3.12"
+          - "3.14"
         ansible:
-          - 8
-          - 9
-          - 10
+          - 13
+          - 14
         distro:
-          - ubuntu2004
+          # Python 3.10 / Ansible 2.12
           - ubuntu2204
+          # Python 3.12 / Ansible 2.16
           - ubuntu2404
+          # Python 3.14 / Ansible 2.20
+          - ubuntu2604
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,8 +73,6 @@ jobs:
           ansible==${{ matrix.ansible }}.*
           docker
           molecule-plugins[docker]
-          # https://github.com/docker/docker-py/issues/3256
-          requests==2.31.0
           EOF
           echo "REQS_HASH=$(sha256sum test-requirements.txt | awk '{ print $1 }')" >> "$GITHUB_ENV"
 

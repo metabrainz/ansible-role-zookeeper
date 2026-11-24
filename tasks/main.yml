@@ -73,8 +73,8 @@
 
 - name: Download ZooKeeper archive locally and copy to hosts
   when:
-    - zookeeper_local_download_directory | d()
-    - not _zookeeper_archive.stat.isreg | d()
+    - zookeeper_local_download_directory | d('') | length > 0
+    - not _zookeeper_archive.stat.isreg | d(False)
   block:
     - name: Create local download directory
       ansible.builtin.file:
@@ -114,7 +114,7 @@
     mode: "0644"
   register: _zookeeper_download
   ignore_errors: "{{ ansible_check_mode }}"
-  when: not zookeeper_local_download_directory | d()
+  when: zookeeper_local_download_directory | d('') | length == 0
 
 - name: Unarchive ZooKeeper
   ansible.builtin.unarchive:
@@ -127,7 +127,7 @@
   when: >-
     (_zookeeper_copy | d()) is changed or
     (_zookeeper_download | d()) is changed or
-    (zookeeper_force_unarchive | d())
+    (zookeeper_force_unarchive | d(False) | bool)
 
 - name: Install ZooKeeper symlink
   ansible.builtin.file:
