@@ -21,7 +21,7 @@
         result.status != 200 or
         result.json is not defined or
         result.json.error is not defined or
-        result.json.error
+        result.json.error | d(None) is not none
 
     - name: Log ZooKeeper leader command output
       ansible.builtin.debug:
